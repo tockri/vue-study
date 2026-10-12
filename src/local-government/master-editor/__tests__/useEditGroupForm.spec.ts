@@ -18,7 +18,7 @@ describe('useEditGroupForm', () => {
       // Arrange
       const editGroup = vi.fn<GroupCheckService['editGroup']>(async () => {})
       const service = createFakeGroupCheckService({ editGroup })
-      const form = useEditGroupForm(service, group)
+      const form = useEditGroupForm(service, group, [])
       await flushPromises()
 
       // Act
@@ -37,7 +37,7 @@ describe('useEditGroupForm', () => {
           throw new Error('更新できませんでした')
         },
       })
-      const form = useEditGroupForm(service, group)
+      const form = useEditGroupForm(service, group, [])
       await flushPromises()
 
       // Act
@@ -56,7 +56,7 @@ describe('useEditGroupForm', () => {
       // Arrange
       const deleteGroup = vi.fn<GroupCheckService['deleteGroup']>(async () => {})
       const service = createFakeGroupCheckService({ deleteGroup })
-      const form = useEditGroupForm(service, group)
+      const form = useEditGroupForm(service, group, [])
       await flushPromises()
 
       // Act
@@ -75,7 +75,7 @@ describe('useEditGroupForm', () => {
           throw new Error('削除できませんでした')
         },
       })
-      const form = useEditGroupForm(service, group)
+      const form = useEditGroupForm(service, group, [])
       await flushPromises()
 
       // Act
@@ -93,7 +93,7 @@ describe('useEditGroupForm', () => {
       const deferred = createDeferred<void>()
       const deleteGroup = vi.fn<GroupCheckService['deleteGroup']>(() => deferred.promise)
       const service = createFakeGroupCheckService({ deleteGroup })
-      const form = useEditGroupForm(service, group)
+      const form = useEditGroupForm(service, group, [])
       await flushPromises()
 
       // Act（1回目の応答を待たずに2回目を呼ぶ = ボタン連打）
@@ -116,7 +116,7 @@ describe('useEditGroupForm', () => {
           throw new Error('削除できませんでした')
         },
       })
-      const form = useEditGroupForm(service, group)
+      const form = useEditGroupForm(service, group, [])
       await flushPromises()
       await form.remove()
 
@@ -125,6 +125,62 @@ describe('useEditGroupForm', () => {
 
       // Assert
       expect(form.deleteError.value).toBe(null)
+    })
+  })
+
+  describe('組織IDの重複', () => {
+    const otherOrganizationId = '0f4c1a52-9d3b-4e81-9a77-2c8e6b5d41a0'
+    const ownOrganizationId = '7b2e9c14-5a6d-42f3-8c19-de30b7a95f62'
+
+    // 編集対象は組織IDを持っていて、別のグループが別の組織IDを使っている状態
+    const editing: Group = { ...group, organizationId: ownOrganizationId }
+    const existingGroups: ReadonlyArray<Group> = [
+      editing,
+      {
+        groupId: '長崎市-2',
+        localGovernmentName: '長崎市',
+        organizationId: otherOrganizationId,
+        bankCode: '0181',
+      },
+    ]
+
+    test('自分が今使っている組織IDはそのまま保存できる', async () => {
+      // Arrange / Act（初期値のまま開く）
+      const form = useEditGroupForm(createFakeGroupCheckService(), editing, existingGroups)
+      await flushPromises()
+
+      // Assert（自分自身は重複の相手にしない）
+      expect(form.organization.errorMessages.value).toEqual([])
+      expect(form.canSubmit.value).toBe(true)
+    })
+
+    test('他のグループが使っている組織IDはエラーになり、保存できない', async () => {
+      // Arrange
+      const form = useEditGroupForm(createFakeGroupCheckService(), editing, existingGroups)
+      await flushPromises()
+
+      // Act
+      form.organization.organizationId.value = otherOrganizationId
+      await flushPromises()
+
+      // Assert
+      expect(form.organization.errorMessages.value).toEqual(['その組織IDは他のグループで使われています'])
+      expect(form.canSubmit.value).toBe(false)
+    })
+
+    test('空にして未設定に戻すことはできる', async () => {
+      // Arrange
+      const form = useEditGroupForm(createFakeGroupCheckService(), editing, existingGroups)
+      await flushPromises()
+
+      // Act
+      form.organization.organizationId.value = ''
+      await flushPromises()
+
+      // Assert
+      expect(form.organization.errorMessages.value).toEqual([])
+      expect(form.payload.value.organizationId).toBe('')
+      expect(form.canSubmit.value).toBe(true)
     })
   })
 })

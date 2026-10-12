@@ -7,6 +7,8 @@ import ConfirmDeleteDialog from '@/local-government/master-editor/ConfirmDeleteD
 const props = defineProps<{
   group: Group
   service: GroupCheckService
+  // 重複チェックに使う、ダイアログを開いた時点の一覧
+  existingGroups: ReadonlyArray<Group>
 }>()
 
 const emit = defineEmits<{
@@ -17,7 +19,7 @@ const emit = defineEmits<{
 
 // group は親から渡された時点で固定したいので、composable には props.group をそのまま渡す
 // （親側で :key を付けて対象が変わったらマウントし直している）
-const form = useEditGroupForm(props.service, props.group)
+const form = useEditGroupForm(props.service, props.group, props.existingGroups)
 
 const confirmDeleteOpen = ref(false)
 

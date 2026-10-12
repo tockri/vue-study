@@ -28,17 +28,19 @@ const editor = useMasterEditor(service, banks[0].bankCode)
       @edit="editor.openEditDialog($event)"
     />
 
-    <!-- 選択中の金融機関がそのまま登録先になる -->
+    <!-- 選択中の金融機関がそのまま登録先になる。重複チェックには絞り込み前の一覧を渡す -->
     <CreateGroupDialog
       v-model="editor.createDialogOpen.value"
       :service="service"
       :bank-code="editor.list.bankCode.value"
+      :existing-groups="editor.list.groups.value"
       @created="editor.handleCreated()"
     />
 
     <EditGroupDialog
       v-model="editor.editTarget.value"
       :service="service"
+      :existing-groups="editor.list.groups.value"
       @saved="editor.handleEditDone()"
       @deleted="editor.handleEditDone()"
     />

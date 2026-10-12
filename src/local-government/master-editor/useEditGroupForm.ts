@@ -6,10 +6,17 @@ import { useOrganizationCheck } from '@/local-government/master-editor/useOrgani
  * editForm の状態と送信を担当する composable。
  * 編集できるのは組織IDだけ（EditGroupPayload にそれしか無い）なので、
  * グループIDと市町村名は表示専用として受け取った group から読む。
+ *
+ * existingGroups は組織IDの重複チェックに使う一覧。編集中のグループ自身は相手に含めない。
  */
-export const useEditGroupForm = (service: GroupCheckService, group: Group) => {
+export const useEditGroupForm = (service: GroupCheckService, group: Group, existingGroups: ReadonlyArray<Group>) => {
+  // 自分が今使っている組織IDはそのまま保存できないといけないので、自分自身は除く
+  const usedOrganizationIds = existingGroups.flatMap((other) =>
+    other.groupId === group.groupId || other.organizationId === null ? [] : [other.organizationId],
+  )
+
   // 組織IDは未設定（null）があり得る。フォーム上は空文字として扱う
-  const organization = useOrganizationCheck(service, group.organizationId ?? '')
+  const organization = useOrganizationCheck(service, group.organizationId ?? '', usedOrganizationIds)
   const submitting = ref(false)
   const deleting = ref(false)
   // 保存エラーはフォーム上に、削除エラーは確認ダイアログの中に出す。

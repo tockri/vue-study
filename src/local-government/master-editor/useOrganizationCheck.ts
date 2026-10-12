@@ -1,14 +1,28 @@
 import { computed, ref, watch } from 'vue'
 import type { GroupCheckService, OrganizationCheckResult } from '@/local-government/master-editor/types'
 import { useValidatedField } from '@/local-government/master-editor/useValidatedField'
-import { validateOrganizationId } from '@/local-government/master-editor/validation'
+import {
+  combineValidators,
+  validateOrganizationId,
+  validateUnusedOrganizationId,
+} from '@/local-government/master-editor/validation'
 
 /**
  * 組織IDの入力・形式チェック・サーバーチェックを担当する composable。
  * 新規登録フォームと編集フォームの両方が同じ挙動を必要とするのでここに切り出している。
+ *
+ * usedOrganizationIds には「同じ一覧の他のグループが使っている組織ID」を渡す。
+ * 形式エラーと同じく入力エラーとして扱うので、重複している間はサーバーにも問い合わせない。
  */
-export const useOrganizationCheck = (service: GroupCheckService, initialOrganizationId = '') => {
-  const field = useValidatedField(validateOrganizationId, initialOrganizationId)
+export const useOrganizationCheck = (
+  service: GroupCheckService,
+  initialOrganizationId = '',
+  usedOrganizationIds: ReadonlyArray<string> = [],
+) => {
+  const field = useValidatedField(
+    combineValidators(validateOrganizationId, validateUnusedOrganizationId(usedOrganizationIds)),
+    initialOrganizationId,
+  )
   const result = ref<OrganizationCheckResult | null>(null)
   const checking = ref(false)
 
@@ -24,7 +38,7 @@ export const useOrganizationCheck = (service: GroupCheckService, initialOrganiza
 
   const check = async () => {
     const target = field.trimmed.value
-    // 空のときと形式が不正なときはサーバーに聞きに行かない。
+    // 空のときと入力エラーのときはサーバーに聞きに行かない。
     // 飛んでいる問い合わせがあってもその結果はもう要らないので世代を進めて無効化する
     if (target === '' || !field.valid.value) {
       latestCheckId++
@@ -54,7 +68,7 @@ export const useOrganizationCheck = (service: GroupCheckService, initialOrganiza
     currentResult.value?.available === true ? currentResult.value.organizationName : null,
   )
 
-  // 形式エラーを優先して出す（形式が不正ならサーバーには聞いていない）
+  // 入力エラー（形式・重複）を優先して出す（入力エラーならサーバーには聞いていない）
   const errorMessages = computed<ReadonlyArray<string>>(() => {
     if (field.errorMessages.value.length > 0) {
       return field.errorMessages.value

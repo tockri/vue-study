@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { GroupCheckService } from '@/local-government/master-editor/types'
+import type { Group, GroupCheckService } from '@/local-government/master-editor/types'
 import CreateGroupForm from '@/local-government/master-editor/CreateGroupForm.vue'
 
 defineProps<{
   service: GroupCheckService
+  // 重複チェックに使う、ダイアログを開いた時点の一覧
+  existingGroups: ReadonlyArray<Group>
   bankCode: string
 }>()
 
@@ -25,6 +27,7 @@ const open = defineModel<boolean>({ required: true })
           v-if="open"
           :service="service"
           :bank-code="bankCode"
+          :existing-groups="existingGroups"
           @created="emit('created')"
           @cancel="open = false"
         />

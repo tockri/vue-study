@@ -4,6 +4,8 @@ import EditGroupForm from '@/local-government/master-editor/EditGroupForm.vue'
 
 defineProps<{
   service: GroupCheckService
+  // 重複チェックに使う、ダイアログを開いた時点の一覧
+  existingGroups: ReadonlyArray<Group>
 }>()
 
 const emit = defineEmits<{
@@ -33,6 +35,7 @@ const target = defineModel<Group | null>({ required: true })
           :key="target.groupId"
           :group="target"
           :service="service"
+          :existing-groups="existingGroups"
           @saved="emit('saved')"
           @deleted="emit('deleted')"
           @cancel="target = null"

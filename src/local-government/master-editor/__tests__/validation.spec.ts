@@ -1,9 +1,12 @@
 import { describe, expect, test } from 'vitest'
 import {
+  combineValidators,
   validateGroupId,
   validateLocalGovernmentName,
   validateOrganizationId,
   validateRequired,
+  validateUnusedGroupId,
+  validateUnusedOrganizationId,
 } from '@/local-government/master-editor/validation'
 
 describe('validation', () => {
@@ -79,6 +82,63 @@ describe('validation', () => {
     test('それぞれの項目名でメッセージを出す', () => {
       expect(validateGroupId('')).toBe('グループIDを入力してください')
       expect(validateLocalGovernmentName('')).toBe('市町村名を入力してください')
+    })
+  })
+
+  describe('validateUnusedGroupId', () => {
+    const validate = validateUnusedGroupId(['福岡市-1', '北九州市-1'])
+
+    test('一覧に無いグループIDならnullを返す', () => {
+      expect(validate('佐世保市-1')).toBe(null)
+    })
+
+    test('一覧にあるグループIDはエラーを返す', () => {
+      expect(validate('福岡市-1')).toBe('そのグループIDは既に使われています')
+    })
+
+    test('前後の空白を落として判定する', () => {
+      expect(validate('  福岡市-1  ')).toBe('そのグループIDは既に使われています')
+    })
+
+    test('空のときは判定しない（未入力は必須チェックの担当）', () => {
+      expect(validate('')).toBe(null)
+    })
+  })
+
+  describe('validateUnusedOrganizationId', () => {
+    const used = '0f4c1a52-9d3b-4e81-9a77-2c8e6b5d41a0'
+    const validate = validateUnusedOrganizationId([used])
+
+    test('他のグループが使っていない組織IDならnullを返す', () => {
+      expect(validate('7b2e9c14-5a6d-42f3-8c19-de30b7a95f62')).toBe(null)
+    })
+
+    test('他のグループが使っている組織IDはエラーを返す', () => {
+      expect(validate(used)).toBe('その組織IDは他のグループで使われています')
+    })
+
+    test('UUIDは大文字小文字を区別せずに重複と判定する', () => {
+      expect(validate(used.toUpperCase())).toBe('その組織IDは他のグループで使われています')
+    })
+
+    test('空のときは判定しない（組織IDは未設定のまま複数あってよい）', () => {
+      expect(validate('')).toBe(null)
+    })
+  })
+
+  describe('combineValidators', () => {
+    const validate = combineValidators(validateRequired('グループID'), validateUnusedGroupId(['福岡市-1']))
+
+    test('どのルールにも引っかからなければnullを返す', () => {
+      expect(validate('佐世保市-1')).toBe(null)
+    })
+
+    test('先に書いたルールのエラーを優先して返す', () => {
+      expect(validate('')).toBe('グループIDを入力してください')
+    })
+
+    test('後ろのルールのエラーも返す', () => {
+      expect(validate('福岡市-1')).toBe('そのグループIDは既に使われています')
     })
   })
 })

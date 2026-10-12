@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { GroupCheckService } from '@/local-government/master-editor/types'
+import type { Group, GroupCheckService } from '@/local-government/master-editor/types'
 import { useCreateGroupForm } from '@/local-government/master-editor/useCreateGroupForm'
 
 const props = defineProps<{
   service: GroupCheckService
+  // 重複チェックに使う、ダイアログを開いた時点の一覧
+  existingGroups: ReadonlyArray<Group>
   // 登録先の金融機関。一覧で選択中のものがそのまま登録先になる
   bankCode: string
 }>()
@@ -13,7 +15,7 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const form = useCreateGroupForm(props.service, props.bankCode)
+const form = useCreateGroupForm(props.service, props.bankCode, props.existingGroups)
 
 const submit = async () => {
   if (await form.submit()) {

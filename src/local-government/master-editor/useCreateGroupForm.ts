@@ -1,19 +1,36 @@
 import { computed, ref } from 'vue'
-import type { CreateGroupPayload, GroupCheckService } from '@/local-government/master-editor/types'
+import type { CreateGroupPayload, Group, GroupCheckService } from '@/local-government/master-editor/types'
 import { useOrganizationCheck } from '@/local-government/master-editor/useOrganizationCheck'
 import { useValidatedField } from '@/local-government/master-editor/useValidatedField'
-import { validateGroupId, validateLocalGovernmentName } from '@/local-government/master-editor/validation'
+import {
+  combineValidators,
+  validateGroupId,
+  validateLocalGovernmentName,
+  validateUnusedGroupId,
+} from '@/local-government/master-editor/validation'
 
 /**
  * createForm の状態と送信を担当する composable。
  * CreateGroupPayload を組み立てるところまでが責務で、ダイアログの開閉は呼び出し側に任せる。
  *
  * 登録先の金融機関は入力項目ではないので、画面で選択中のものを引数で受け取る。
+ * existingGroups は重複チェックに使う一覧。ダイアログを開いた時点のもので、
+ * その後に他の人が登録した分までは見られないため、最終的な判定はサーバーに任せる。
  */
-export const useCreateGroupForm = (service: GroupCheckService, bankCode: string) => {
-  const groupId = useValidatedField(validateGroupId)
+export const useCreateGroupForm = (
+  service: GroupCheckService,
+  bankCode: string,
+  existingGroups: ReadonlyArray<Group>,
+) => {
+  const usedGroupIds = existingGroups.map((group) => group.groupId)
+  // 組織IDが未設定（null）のグループは重複の相手にならない
+  const usedOrganizationIds = existingGroups.flatMap((group) =>
+    group.organizationId === null ? [] : [group.organizationId],
+  )
+
+  const groupId = useValidatedField(combineValidators(validateGroupId, validateUnusedGroupId(usedGroupIds)))
   const localGovernmentName = useValidatedField(validateLocalGovernmentName)
-  const organization = useOrganizationCheck(service)
+  const organization = useOrganizationCheck(service, '', usedOrganizationIds)
   const submitting = ref(false)
   const errorMessage = ref<string | null>(null)
 
