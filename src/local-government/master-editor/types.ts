@@ -38,12 +38,14 @@ export type SearchCondition = {
 
 export type EditGroupPayload = {
   groupId: string
+  // 空文字列で編集すると、loadGroupsが返すGroup.organizationIdがnullになる
   organizationId: string
 }
 
 export type CreateGroupPayload = {
   groupId: string
   localGovernmentName: string
+  // 空文字列で登録すると、loadGroupsが返すGroup.organizationIdがnullになる
   organizationId: string
 }
 

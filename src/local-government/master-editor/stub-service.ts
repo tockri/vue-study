@@ -14,6 +14,9 @@ const createStubGroupCheckService = (initial: ReadonlyArray<Group> = SampleData.
   // スタブでは直前に一覧取得した金融機関を「今の金融機関」として覚えておく
   let currentBankCode: string = SampleData.banks[0].bankCode
 
+  // Group.organizationId は null 許容だが payload 側は string なので、空文字は null に寄せて保存する
+  const toStoredOrganizationId = (value: string): string | null => (value.trim() === '' ? null : value.trim())
+
   // 通信待ちの loading 表示を確認できるように、わざと遅延を入れている
   const delay = () => new Promise((resolve) => setTimeout(resolve, 300))
 
@@ -26,8 +29,9 @@ const createStubGroupCheckService = (initial: ReadonlyArray<Group> = SampleData.
 
     async checkOrganizationId(organizationId): Promise<OrganizationCheckResult> {
       await delay()
-      // 成功・失敗の両方の表示を試せるように、'ng' を含む組織IDだけ利用不可として返す
-      if (organizationId.includes('ng')) {
+      // 成功・失敗の両方の表示を試せるように、'f' で始まる組織IDだけ利用不可として返す
+      // （UUID は16進数しか含まないため、文字列の一部で判定すると失敗パターンに到達できない）
+      if (organizationId.startsWith('f')) {
         return { organizationId, available: false, message: 'この組織IDは利用できません' }
       }
       return { organizationId, available: true, organizationName: `${organizationId} 組織` }
@@ -38,13 +42,19 @@ const createStubGroupCheckService = (initial: ReadonlyArray<Group> = SampleData.
       if (groups.some((group) => group.groupId === payload.groupId)) {
         throw new Error('同じグループIDが既に登録されています')
       }
-      groups.push({ ...payload, bankCode: currentBankCode })
+      groups.push({
+        ...payload,
+        organizationId: toStoredOrganizationId(payload.organizationId),
+        bankCode: currentBankCode,
+      })
     },
 
     async editGroup(payload: EditGroupPayload) {
       await delay()
       groups = groups.map((group) =>
-        group.groupId === payload.groupId ? { ...group, organizationId: payload.organizationId } : group,
+        group.groupId === payload.groupId
+          ? { ...group, organizationId: toStoredOrganizationId(payload.organizationId) }
+          : group,
       )
     },
 

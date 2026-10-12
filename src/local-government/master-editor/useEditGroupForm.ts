@@ -8,54 +8,73 @@ import { useOrganizationCheck } from '@/local-government/master-editor/useOrgani
  * グループIDと市町村名は表示専用として受け取った group から読む。
  */
 export const useEditGroupForm = (service: GroupCheckService, group: Group) => {
-  const organization = useOrganizationCheck(service, group.organizationId)
+  // 組織IDは未設定（null）があり得る。フォーム上は空文字として扱う
+  const organization = useOrganizationCheck(service, group.organizationId ?? '')
   const submitting = ref(false)
-  const errorMessage = ref<string | null>(null)
+  const deleting = ref(false)
+  // 保存エラーはフォーム上に、削除エラーは確認ダイアログの中に出す。
+  // 共有すると削除の失敗がダイアログの裏に隠れてユーザーに届かないので分けている
+  const saveError = ref<string | null>(null)
+  const deleteError = ref<string | null>(null)
 
   const payload = computed<EditGroupPayload>(() => ({
     groupId: group.groupId,
-    organizationId: organization.organizationId.value.trim(),
+    organizationId: organization.trimmed.value,
   }))
 
-  // 初期値は登録時にチェック済みなので、変更していなければ再チェックなしで保存できる
-  const unchanged = computed(() => payload.value.organizationId === group.organizationId)
-
-  const canSubmit = computed(
-    () => !submitting.value && payload.value.organizationId !== '' && (unchanged.value || organization.verified.value),
-  )
+  // 初期値も含めて毎回チェックし直す（useOrganizationCheck が開いた直後にチェックを走らせる）
+  const canSubmit = computed(() => !submitting.value && organization.verified.value && !organization.checking.value)
 
   const submit = async (): Promise<boolean> => {
     if (!canSubmit.value) {
       return false
     }
     submitting.value = true
-    errorMessage.value = null
+    saveError.value = null
     try {
       await service.editGroup(payload.value)
       return true
     } catch (error) {
-      errorMessage.value = error instanceof Error ? error.message : '更新に失敗しました'
+      saveError.value = error instanceof Error ? error.message : '更新に失敗しました'
       return false
     } finally {
       submitting.value = false
     }
   }
 
-  const deleting = ref(false)
+  // 確認ダイアログを開き直したときに前回の失敗メッセージが残らないようにする
+  const clearDeleteError = () => {
+    deleteError.value = null
+  }
 
   const remove = async (): Promise<boolean> => {
+    // 連打で deleteGroup が複数回飛ぶのを防ぐ。ボタンの :loading だけに頼らない
+    if (deleting.value) {
+      return false
+    }
     deleting.value = true
-    errorMessage.value = null
+    deleteError.value = null
     try {
       await service.deleteGroup(group.groupId)
       return true
     } catch (error) {
-      errorMessage.value = error instanceof Error ? error.message : '削除に失敗しました'
+      deleteError.value = error instanceof Error ? error.message : '削除に失敗しました'
       return false
     } finally {
       deleting.value = false
     }
   }
 
-  return { organization, submitting, deleting, errorMessage, payload, unchanged, canSubmit, submit, remove }
+  return {
+    organization,
+    submitting,
+    deleting,
+    saveError,
+    deleteError,
+    payload,
+    canSubmit,
+    submit,
+    clearDeleteError,
+    remove,
+  }
 }

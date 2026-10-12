@@ -12,22 +12,23 @@ const banks = [
   },
 ] as const satisfies readonly [Bank, ...Bank[]]
 
+// 組織IDは UUID 形式でバリデーションするので、サンプルも UUID で持つ
 const groups: readonly Group[] = [
   {
     groupId: '福岡市-1',
-    organizationId: 'xxxx-yyyy-zzzz-wwww',
+    organizationId: '0f4c1a52-9d3b-4e81-9a77-2c8e6b5d41a0',
     bankCode: '0177',
     localGovernmentName: '福岡市',
   },
   {
     groupId: '北九州市-1',
-    organizationId: 'aaaa-bbbb-cccc-dddd',
+    organizationId: '7b2e9c14-5a6d-42f3-8c19-de30b7a95f62',
     bankCode: '0177',
     localGovernmentName: '北九州市',
   },
   {
     groupId: '長崎市-1',
-    organizationId: 'eeee-ffff-gggg-hhhh',
+    organizationId: null,
     bankCode: '0181',
     localGovernmentName: '長崎市',
   },

@@ -1,15 +1,16 @@
 import { computed, ref, watch } from 'vue'
 import type { Group, GroupCheckService, SearchCondition } from '@/local-government/master-editor/types'
-import { SampleData } from '@/local-government/master-editor/sample-data'
 
 /**
  * 一覧の取得と絞り込みだけを担当する composable。
  * 金融機関（bankCode）の切り替えはサーバー再取得、query はクライアント側で即時絞り込み、
  * という types.ts の API コメントどおりの分担にしてある。
+ *
+ * 最初に表示する金融機関は呼び出し側から受け取る（サンプルデータに依存させない）。
  */
-export const useGroupList = (service: GroupCheckService) => {
+export const useGroupList = (service: GroupCheckService, initialBankCode: string) => {
   const condition = ref<SearchCondition>({
-    bankCode: SampleData.banks[0].bankCode,
+    bankCode: initialBankCode,
     query: '',
   })
   const groups = ref<ReadonlyArray<Group>>([])
@@ -33,7 +34,7 @@ export const useGroupList = (service: GroupCheckService) => {
       return groups.value
     }
     return groups.value.filter((group) =>
-      [group.groupId, group.localGovernmentName, group.organizationId].some((value) => value.includes(query)),
+      [group.groupId, group.localGovernmentName, group.organizationId ?? ''].some((value) => value.includes(query)),
     )
   })
 

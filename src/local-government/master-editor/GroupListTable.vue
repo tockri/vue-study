@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import type { Group, SearchCondition } from '@/local-government/master-editor/types'
-import { SampleData } from '@/local-government/master-editor/sample-data'
+import type { Bank, Group, SearchCondition } from '@/local-government/master-editor/types'
 
-const props = defineProps<{
+defineProps<{
+  // 金融機関の選択肢は本来サーバー由来のマスタなので、ここでは受け取るだけにする
+  banks: ReadonlyArray<Bank>
   groups: ReadonlyArray<Group>
   loading: boolean
-  condition: SearchCondition
 }>()
 
 const emit = defineEmits<{
-  'update:condition': [condition: SearchCondition]
   create: []
   edit: [group: Group]
 }>()
 
-// 検索条件は親が持つ状態なので、ここでは書き換えずに差分を emit するだけにする
+// 検索条件は親と双方向に持つ（親は v-model:condition で渡す）。
+// defineModel が返す ref は書き換えてよいので、props のときのような emit し直しが要らない
+const condition = defineModel<SearchCondition>('condition', { required: true })
+
+// 条件は 1 つのオブジェクトなので、変えた項目だけ差し替える
 const updateCondition = (patch: Partial<SearchCondition>) => {
-  emit('update:condition', { ...props.condition, ...patch })
+  condition.value = { ...condition.value, ...patch }
 }
 
 const headers = [
@@ -34,7 +37,7 @@ const headers = [
         <v-select
           id="bankCodeSelect"
           :model-value="condition.bankCode"
-          :items="SampleData.banks"
+          :items="banks"
           item-title="name"
           item-value="bankCode"
           label="金融機関"

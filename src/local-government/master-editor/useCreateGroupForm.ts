@@ -1,30 +1,34 @@
 import { computed, ref } from 'vue'
 import type { CreateGroupPayload, GroupCheckService } from '@/local-government/master-editor/types'
 import { useOrganizationCheck } from '@/local-government/master-editor/useOrganizationCheck'
+import { useValidatedField } from '@/local-government/master-editor/useValidatedField'
+import { validateGroupId, validateLocalGovernmentName } from '@/local-government/master-editor/validation'
 
 /**
  * createForm の状態と送信を担当する composable。
  * CreateGroupPayload を組み立てるところまでが責務で、ダイアログの開閉は呼び出し側に任せる。
  */
 export const useCreateGroupForm = (service: GroupCheckService) => {
-  const groupId = ref('')
-  const localGovernmentName = ref('')
+  const groupId = useValidatedField(validateGroupId)
+  const localGovernmentName = useValidatedField(validateLocalGovernmentName)
   const organization = useOrganizationCheck(service)
   const submitting = ref(false)
   const errorMessage = ref<string | null>(null)
 
   const payload = computed<CreateGroupPayload>(() => ({
-    groupId: groupId.value.trim(),
-    localGovernmentName: localGovernmentName.value.trim(),
-    organizationId: organization.organizationId.value.trim(),
+    groupId: groupId.trimmed.value,
+    localGovernmentName: localGovernmentName.trimmed.value,
+    organizationId: organization.trimmed.value,
   }))
 
+  // 「入力ルールを全部クリア」かつ「組織IDが空、または組織名が返っている」
   const canSubmit = computed(
     () =>
       !submitting.value &&
-      payload.value.groupId !== '' &&
-      payload.value.localGovernmentName !== '' &&
-      organization.verified.value,
+      groupId.valid.value &&
+      localGovernmentName.valid.value &&
+      organization.verified.value &&
+      !organization.checking.value,
   )
 
   const submit = async (): Promise<boolean> => {

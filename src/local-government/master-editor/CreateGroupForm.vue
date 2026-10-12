@@ -20,18 +20,26 @@ const submit = async () => {
 </script>
 
 <template>
-  <!-- v-form ではなく form 要素。validation は composable 側の canSubmit に寄せている -->
+  <!-- v-form は使わない。検証ルールと「送信できるか」は composable 側に置いてテストしやすくしている -->
   <form id="createForm" @submit.prevent="submit">
     <div class="flex flex-col gap-2">
-      <v-text-field v-model="form.groupId.value" label="グループID" class="groupIdField" />
-      <v-text-field v-model="form.localGovernmentName.value" label="市町村名" class="localGovernmentNameField" />
+      <v-text-field
+        v-model="form.groupId.model.value"
+        label="グループID"
+        class="groupIdField"
+        :error-messages="[...form.groupId.errorMessages.value]"
+      />
+      <v-text-field
+        v-model="form.localGovernmentName.model.value"
+        label="市町村名"
+        class="localGovernmentNameField"
+        :error-messages="[...form.localGovernmentName.errorMessages.value]"
+      />
       <OrganizationIdField
-        :model-value="form.organization.organizationId.value"
+        v-model="form.organization.organizationId.value"
         :checking="form.organization.checking.value"
         :error-messages="form.organization.errorMessages.value"
         :organization-name="form.organization.organizationName.value"
-        @update:model-value="form.organization.organizationId.value = $event"
-        @check="form.organization.check()"
       />
       <v-alert v-if="form.errorMessage.value" type="error" density="compact" class="mt-2">
         {{ form.errorMessage.value }}
