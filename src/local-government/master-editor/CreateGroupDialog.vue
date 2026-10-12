@@ -4,6 +4,7 @@ import CreateGroupForm from '@/local-government/master-editor/CreateGroupForm.vu
 
 defineProps<{
   service: GroupCheckService
+  bankCode: string
 }>()
 
 const emit = defineEmits<{
@@ -20,7 +21,13 @@ const open = defineModel<boolean>({ required: true })
       <v-card-title>グループの新規登録</v-card-title>
       <v-card-text>
         <!-- 閉じるたびにフォームの状態を捨てたいので v-if でマウントし直す（v-dialog の遅延生成だけでは残る） -->
-        <CreateGroupForm v-if="open" :service="service" @created="emit('created')" @cancel="open = false" />
+        <CreateGroupForm
+          v-if="open"
+          :service="service"
+          :bank-code="bankCode"
+          @created="emit('created')"
+          @cancel="open = false"
+        />
       </v-card-text>
     </v-card>
   </v-dialog>

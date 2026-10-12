@@ -18,7 +18,8 @@ const editor = useMasterEditor(service, banks[0].bankCode)
     <h1 class="text-2xl font-bold">地公体グループ</h1>
 
     <GroupListTable
-      v-model:condition="editor.list.condition.value"
+      v-model:bank-code="editor.list.bankCode.value"
+      v-model:query="editor.list.query.value"
       class="mt-4"
       :banks="banks"
       :groups="editor.list.filteredGroups.value"
@@ -27,14 +28,19 @@ const editor = useMasterEditor(service, banks[0].bankCode)
       @edit="editor.openEditDialog($event)"
     />
 
-    <CreateGroupDialog v-model="editor.createDialogOpen.value" :service="service" @created="editor.handleCreated()" />
+    <!-- 選択中の金融機関がそのまま登録先になる -->
+    <CreateGroupDialog
+      v-model="editor.createDialogOpen.value"
+      :service="service"
+      :bank-code="editor.list.bankCode.value"
+      @created="editor.handleCreated()"
+    />
 
     <EditGroupDialog
-      :group="editor.editTarget.value"
+      v-model="editor.editTarget.value"
       :service="service"
-      @close="editor.closeEditDialog()"
-      @saved="editor.handleSaved()"
-      @deleted="editor.handleDeleted()"
+      @saved="editor.handleEditDone()"
+      @deleted="editor.handleEditDone()"
     />
   </v-container>
 </template>

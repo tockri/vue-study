@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import type { Group, GroupCheckService } from '@/local-government/master-editor/types'
 import { useEditGroupForm } from '@/local-government/master-editor/useEditGroupForm'
-import OrganizationIdField from '@/local-government/master-editor/OrganizationIdField.vue'
 import ConfirmDeleteDialog from '@/local-government/master-editor/ConfirmDeleteDialog.vue'
 
 const props = defineProps<{
@@ -48,12 +47,24 @@ const remove = async () => {
       <!-- グループIDと市町村名は EditGroupPayload に含まれないので表示のみ -->
       <v-text-field :model-value="group.groupId" label="グループID" readonly disabled />
       <v-text-field :model-value="group.localGovernmentName" label="市町村名" readonly disabled />
-      <OrganizationIdField
-        v-model="form.organization.organizationId.value"
-        :checking="form.organization.checking.value"
-        :error-messages="form.organization.errorMessages.value"
-        :organization-name="form.organization.organizationName.value"
-      />
+      <!--
+        組織IDの入力欄は新規登録フォームにも同じものがあるが、画面ごとに案内文が変わるので共通部品にしていない。
+        共通なのは挙動（形式チェックとサーバーチェック）のほうで、それは useOrganizationCheck に寄せてある
+      -->
+      <div>
+        <v-text-field
+          v-model="form.organization.organizationId.value"
+          class="organizationIdField"
+          label="組織ID"
+          placeholder="空にすると未設定に戻ります。入力する場合はUUID形式"
+          :loading="form.organization.checking.value"
+          :error-messages="[...form.organization.errorMessages.value]"
+        />
+        <!-- チェック済みであることが分かるように組織名を出す。未チェックのまま保存はできない -->
+        <p v-if="form.organization.organizationName.value" class="mt-1 text-sm text-emerald-700 dark:text-emerald-400">
+          {{ form.organization.organizationName.value }}
+        </p>
+      </div>
       <v-alert v-if="form.saveError.value" type="error" density="compact" class="mt-2">
         {{ form.saveError.value }}
       </v-alert>

@@ -7,8 +7,10 @@ import { validateGroupId, validateLocalGovernmentName } from '@/local-government
 /**
  * createForm の状態と送信を担当する composable。
  * CreateGroupPayload を組み立てるところまでが責務で、ダイアログの開閉は呼び出し側に任せる。
+ *
+ * 登録先の金融機関は入力項目ではないので、画面で選択中のものを引数で受け取る。
  */
-export const useCreateGroupForm = (service: GroupCheckService) => {
+export const useCreateGroupForm = (service: GroupCheckService, bankCode: string) => {
   const groupId = useValidatedField(validateGroupId)
   const localGovernmentName = useValidatedField(validateLocalGovernmentName)
   const organization = useOrganizationCheck(service)
@@ -19,6 +21,7 @@ export const useCreateGroupForm = (service: GroupCheckService) => {
     groupId: groupId.trimmed.value,
     localGovernmentName: localGovernmentName.trimmed.value,
     organizationId: organization.trimmed.value,
+    bankCode,
   }))
 
   // 「入力ルールを全部クリア」かつ「組織IDが空、または組織名が返っている」

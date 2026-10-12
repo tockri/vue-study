@@ -18,17 +18,31 @@ export const useOrganizationCheck = (service: GroupCheckService, initialOrganiza
     result.value !== null && result.value.organizationId === field.trimmed.value ? result.value : null,
   )
 
+  // checking は「今の入力を問い合わせ中か」を表したいので、useGroupList と同じ世代カウンタで管理する。
+  // これが無いと、入力を消した後も飛んでいる問い合わせが返るまで送信ボタンが押せない
+  let latestCheckId = 0
+
   const check = async () => {
     const target = field.trimmed.value
-    // 空のときと形式が不正なときはサーバーに聞きに行かない
+    // 空のときと形式が不正なときはサーバーに聞きに行かない。
+    // 飛んでいる問い合わせがあってもその結果はもう要らないので世代を進めて無効化する
     if (target === '' || !field.valid.value) {
+      latestCheckId++
+      checking.value = false
       return
     }
+    const checkId = ++latestCheckId
     checking.value = true
     try {
-      result.value = await service.checkOrganizationId(target)
+      const checked = await service.checkOrganizationId(target)
+      if (checkId !== latestCheckId) {
+        return
+      }
+      result.value = checked
     } finally {
-      checking.value = false
+      if (checkId === latestCheckId) {
+        checking.value = false
+      }
     }
   }
 
@@ -54,7 +68,6 @@ export const useOrganizationCheck = (service: GroupCheckService, initialOrganiza
   return {
     organizationId: field.model,
     trimmed: field.trimmed,
-    result,
     checking,
     check,
     organizationName,

@@ -10,9 +10,6 @@ import { SampleData } from '@/local-government/master-editor/sample-data'
 // 学習用サンプルなのでバックエンドは持たず、モジュール内の配列を書き換えて永続化のかわりにする
 const createStubGroupCheckService = (initial: ReadonlyArray<Group> = SampleData.groups): GroupCheckService => {
   let groups: Group[] = [...initial]
-  // CreateGroupPayload に bankCode が無い（本来はログインユーザーの所属から決まる）ため、
-  // スタブでは直前に一覧取得した金融機関を「今の金融機関」として覚えておく
-  let currentBankCode: string = SampleData.banks[0].bankCode
 
   // Group.organizationId は null 許容だが payload 側は string なので、空文字は null に寄せて保存する
   const toStoredOrganizationId = (value: string): string | null => (value.trim() === '' ? null : value.trim())
@@ -23,7 +20,6 @@ const createStubGroupCheckService = (initial: ReadonlyArray<Group> = SampleData.
   return {
     async loadGroups(bankCode) {
       await delay()
-      currentBankCode = bankCode
       return groups.filter((group) => group.bankCode === bankCode)
     },
 
@@ -45,7 +41,6 @@ const createStubGroupCheckService = (initial: ReadonlyArray<Group> = SampleData.
       groups.push({
         ...payload,
         organizationId: toStoredOrganizationId(payload.organizationId),
-        bankCode: currentBankCode,
       })
     },
 

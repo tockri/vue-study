@@ -31,11 +31,6 @@ type OrganizationCheckSuccess = {
 
 export type OrganizationCheckResult = OrganizationCheckFail | OrganizationCheckSuccess
 
-export type SearchCondition = {
-  bankCode: string
-  query: string
-}
-
 export type EditGroupPayload = {
   groupId: string
   // 空文字列で編集すると、loadGroupsが返すGroup.organizationIdがnullになる
@@ -47,11 +42,13 @@ export type CreateGroupPayload = {
   localGovernmentName: string
   // 空文字列で登録すると、loadGroupsが返すGroup.organizationIdがnullになる
   organizationId: string
+  // 登録先の金融機関。画面で選択中のものを明示的に渡す
+  bankCode: string
 }
 
 // バックエンドで利用できるAPI
 export interface GroupCheckService {
-  // グループ一覧を取得する。bankCodeによる絞り込みだけで、全件取得する。SearchCondition.queryで絞り込むのはフロントエンド側でリアルタイムに行う。
+  // グループ一覧を取得する。bankCodeによる絞り込みだけで、全件取得する。キーワードでの絞り込みはフロントエンド側でリアルタイムに行う。
   loadGroups(bankCode: string): Promise<ReadonlyArray<Group>>
   // 組織IDを入力されたときに存在、利用可能組織かのチェックをする
   checkOrganizationId(organizationId: string): Promise<OrganizationCheckResult>

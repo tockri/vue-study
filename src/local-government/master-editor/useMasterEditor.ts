@@ -5,6 +5,7 @@ import { useGroupList } from '@/local-government/master-editor/useGroupList'
 /**
  * View.vue が持つ状態をまとめた composable。
  * 「一覧」と「どのダイアログが開いているか」だけを持ち、フォームの中身は各フォームの composable に任せる。
+ * ダイアログを閉じる操作はダイアログ自身が v-model 経由で行うので、ここには開く操作だけを置く。
  */
 export const useMasterEditor = (service: GroupCheckService, initialBankCode: string) => {
   const list = useGroupList(service, initialBankCode)
@@ -16,40 +17,20 @@ export const useMasterEditor = (service: GroupCheckService, initialBankCode: str
   const openCreateDialog = () => {
     createDialogOpen.value = true
   }
-  const closeCreateDialog = () => {
-    createDialogOpen.value = false
-  }
   const openEditDialog = (group: Group) => {
     editTarget.value = group
   }
-  const closeEditDialog = () => {
-    editTarget.value = null
-  }
 
-  // 更新系の操作はすべて「閉じて再取得」で画面を揃える
+  // 更新系の操作はすべて「閉じて再取得」で画面を揃える。
+  // 編集ダイアログは保存も削除も閉じ方と後始末が同じなので 1 つにまとめている
   const handleCreated = async () => {
-    closeCreateDialog()
+    createDialogOpen.value = false
     await list.reload()
   }
-  const handleSaved = async () => {
-    closeEditDialog()
-    await list.reload()
-  }
-  const handleDeleted = async () => {
-    closeEditDialog()
+  const handleEditDone = async () => {
+    editTarget.value = null
     await list.reload()
   }
 
-  return {
-    list,
-    createDialogOpen,
-    editTarget,
-    openCreateDialog,
-    closeCreateDialog,
-    openEditDialog,
-    closeEditDialog,
-    handleCreated,
-    handleSaved,
-    handleDeleted,
-  }
+  return { list, createDialogOpen, editTarget, openCreateDialog, openEditDialog, handleCreated, handleEditDone }
 }
