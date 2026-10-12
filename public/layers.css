@@ -1,0 +1,5 @@
+/* カスケードレイヤーの優先順位をここで先に決める（後のレイヤーが勝つ）。
+   Vuetify のコンポーネント CSS は JS 側から読み込まれて順番が前後するため、
+   順序を読み込み順に頼らずこのファイルで固定する。
+   そのため index.html で他のどのスタイルより先に <link> する。 */
+@layer tailwind-theme, vuetify, tailwind-utilities;

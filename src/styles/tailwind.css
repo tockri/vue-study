@@ -1,0 +1,18 @@
+/* preflight は入れない: Vuetify が自前のリセットを持っていて二重に当たる。
+   レイヤー名は public/layers.css の宣言順と対応している。 */
+@import 'tailwindcss/theme' layer(tailwind-theme);
+@import 'tailwindcss/utilities' layer(tailwind-utilities) source('../');
+
+/* Vuetify のテーマ切り替えは .dark ではなく .v-theme--dark を付ける */
+@custom-variant light (&:where(.v-theme--light, .v-theme--light *));
+@custom-variant dark (&:where(.v-theme--dark, .v-theme--dark *));
+
+@theme {
+  /* Vuetify の既定ブレークポイントに合わせる（settings.scss と vuetify.ts と同じ値） */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 960px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1920px;
+  --breakpoint-xxl: 2560px;
+}

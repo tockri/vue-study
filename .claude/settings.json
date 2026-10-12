@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(bun run type-check)",
+      "Bash(bun test:unit --run)",
+      "Bash(bun test:unit --run *)",
+      "Bash(bun lint)",
+      "Bash(bun run lint:*)",
+      "Bash(bun format)",
+      "Bash(bun run build)",
+      "Bash(bun install)",
+      "Bash(bun pm *)",
+      "Bash(bunx vue-tsc *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(find *)",
+      "Bash(node -v)",
+      "Bash(bun -v)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs"
+    ],
+    "ask": [
+      "Bash(bun add *)",
+      "Bash(bun remove *)"
+    ]
+  }
+}

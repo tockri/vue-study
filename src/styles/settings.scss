@@ -1,0 +1,16 @@
+@use 'vuetify/settings' with (
+  // CSS カスケードレイヤー（vuetify.reset / .base / .components ...）に出力する
+  $layers: true,
+  // ユーティリティと色パレットは Tailwind に任せる。
+  // rounded / border / text-center などのクラス名重複を避けられる
+  $color-pack: false,
+  $utilities: false,
+  $grid-breakpoints: (
+    'xs': 0,
+    'sm': 600px,
+    'md': 960px,
+    'lg': 1280px,
+    'xl': 1920px,
+    'xxl': 2560px,
+  )
+);
