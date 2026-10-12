@@ -28,5 +28,16 @@ export default defineConfigWithVueTs(
 
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
+
+  {
+    // 各 feature ディレクトリの View.vue は router から参照する大元のコンポーネント、という
+    // このプロジェクトの命名規約（CLAUDE.md）なので multi-word の要求から外す
+    name: 'app/feature-view-component-name',
+    files: ['src/**/View.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+
   skipFormatting,
 )

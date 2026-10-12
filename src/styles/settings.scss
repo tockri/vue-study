@@ -5,12 +5,5 @@
   // rounded / border / text-center などのクラス名重複を避けられる
   $color-pack: false,
   $utilities: false,
-  $grid-breakpoints: (
-    'xs': 0,
-    'sm': 600px,
-    'md': 960px,
-    'lg': 1280px,
-    'xl': 1920px,
-    'xxl': 2560px,
-  )
+  $grid-breakpoints: ('xs': 0, 'sm': 600px, 'md': 960px, 'lg': 1280px, 'xl': 1920px, 'xxl': 2560px)
 );

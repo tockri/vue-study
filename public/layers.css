@@ -3,3 +3,9 @@
    順序を読み込み順に頼らずこのファイルで固定する。
    そのため index.html で他のどのスタイルより先に <link> する。 */
 @layer tailwind-theme, vuetify, tailwind-utilities;
+
+/* vuetify の中のサブレイヤー順も宣言しておく。
+   これが無いと「最初に現れたサブレイヤーが先」になり、コンポーネント CSS が
+   reset（* { padding: 0 } 等）より先に登録されて打ち消される。 */
+@layer vuetify.reset, vuetify.transitions, vuetify.base, vuetify.components, vuetify.overrides, vuetify.utilities,
+  vuetify.theme;

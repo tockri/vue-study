@@ -38,12 +38,13 @@ public/layers.css      # @layer の優先順位を固定。index.html で最初�
 ## 規約
 
 - SFC は必ず `<script setup lang="ts">`。`<script>` → `<template>` → `<style>` の順。
-- Vuetify コンポーネントは **PascalCase で参照**（`<VBtn>`、`<v-btn>` ではない）。`vite-plugin-vuetify` の `autoImport: true` が効くので import 不要。
-- Prettier: セミコロンなし / シングルクォート / `printWidth: 100`。手で整形せず `bun format` に任せる。
+- scriptのロジックはcomposableとして別ファイル（*.ts）に記述し、単体テストをしやすくする。
+- Vuetify コンポーネントは **kebabu-case で参照**（`<VBtn>`ではなく`<v-btn>`）。`vite-plugin-vuetify` の `autoImport: true` が効くので import 不要。
+- 各featureディレクトリのView.vueファイルはrouterから参照する大元のコンポーネント。同ディレクトリの別のvueファイルに単一責務になり、凝集度が高くなるように分割して構成する。
+- Prettier: セミコロンなし / シングルクォート / `printWidth: 120`。手で整形せず `bun format` に任せる。
 - コメントは日本語。「何を」ではなく**なぜそうなっているか**を書く（既存コメントの書き方に合わせる）。
 - ライブラリの API を使うときは記憶で書かず context7 で現行ドキュメントを確認する（Vue 3.5 / Vuetify 3 / Tailwind v4 / vue-router 5 と新しめのバージョンを使っている）。
 
 ## 注意
 
 - **スタイリングの役割分担には意図がある**。触る前に `.claude/skills/styling/SKILL.md` を読むこと。要点だけ言うと、ユーティリティと色は Tailwind、コンポーネントは Vuetify、レイヤー順は `public/layers.css` 固定。
-- git リポジトリではない（`git init` 済みではない）。コミット前提の作業を勝手に始めない。
